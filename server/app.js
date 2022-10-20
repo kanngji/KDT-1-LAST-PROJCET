@@ -1,11 +1,42 @@
+// import modules
 const express = require("express");
+const { json, urlencoded } = express;
+const mongoose = require("mongoose");
+const morgan = require("morgan");
+const cors = require("cors");
+
+require("dotenv").config();
+const cookieParser = require("cookie-parser");
+const expressValidator = require("express-validator");
+
+// app
 const app = express();
 
-const PORT = 4000;
-app.use("/", (req, res) => {
-  res.send("asdf");
-});
+// db
+mongoose
+  .connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("DB CONNECTED"))
+  .catch((err) => console.log("DB CONNECTION ERROR", err));
 
-app.listen(PORT, () => {
-  console.log(`이 서버는 ${PORT}포트에서 실행중입니다`);
+// middleware
+app.use(morgan("dev"));
+app.use(cors({ origin: true, credentials: true }));
+app.use(json());
+app.use(urlencoded({ extended: false }));
+app.use(cookieParser());
+app.use(expressValidator());
+
+// routes
+const userRoutes = require("./routes/user");
+app.use("/", userRoutes);
+
+// port
+const port = process.env.PORT || 8080;
+
+// listener
+app.listen(port, () => {
+  console.log(`이 서버는 ${port}포트에서 실행중입니다`);
 });
